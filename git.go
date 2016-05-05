@@ -47,7 +47,7 @@ func (c *Context) checkEscape(path string, cmdContext *cmd.Context) {
 	//installed, I just retry the first time this runs with an escape, if that
 	//works, then we switch over for remaining invokations
 
-	_, err := cmdContext.Execf(`git rev-pasre @{0}`)
+	_, err := cmdContext.Execf(`git rev-parse @{0}`)
 	if err != nil {
 		_, err := cmdContext.Execf(`git rev-parse @\{0\}`)
 		if err != nil {
@@ -142,9 +142,37 @@ func (c *Context) Clone(targetPath string, url string, must bool) error {
 	return err
 }
 
+func (c *Context) Checkout(targetPath, target string, must bool) error {
+	cmdContext := c.cmdContext(targetPath, must)
+
+	_, err := cmdContext.Execf("git checkout %s", target)
+	return err
+}
+
 func (c *Context) Pull(targetPath string, must bool) error {
 	cmdContext := c.cmdContext(targetPath, must)
 
 	_, err := cmdContext.Execf("git pull")
 	return err
+}
+
+func (c *Context) IsGit(targetPath string) bool {
+	cmdContext := c.cmdContext(targetPath, false)
+
+	_, err := cmdContext.Execf("git rev-parse")
+	return err == nil
+}
+
+func (c *Context) SHA(targetPath string, must bool) (string, error) {
+	cmdContext := c.cmdContext(targetPath, must)
+
+	output, err := cmdContext.Execf("git rev-parse HEAD")
+	return dsutil.FirstLine(output), err
+}
+
+func (c *Context) RemoteOriginUrl(targetPath string, must bool) (string, error) {
+	cmdContext := c.cmdContext(targetPath, must)
+
+	output, err := cmdContext.Execf("git config --get remote.origin.url")
+	return dsutil.FirstLine(output), err
 }
