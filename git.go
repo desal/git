@@ -1,7 +1,9 @@
 package git
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -117,14 +119,25 @@ func (c *Context) cmdContext(path string, must bool) *cmd.Context {
 }
 
 func (c *Context) TopLevel(path string, must bool) (string, error) {
+	//Unfortunately you can't use "git rev-parse --show-toplevel", as it will unsymlinkify things.
 	cmdContext := c.cmdContext(path, must)
 
-	output, err := cmdContext.Execf("git rev-parse --show-toplevel")
+	sanePath, err := dsutil.SanitisePath(cmdContext, dsutil.FirstLine(path))
 	if err != nil {
 		return "", err
 	}
+	splitPath := strings.Split(sanePath, "/")
 
-	return dsutil.SanitisePath(cmdContext, dsutil.FirstLine(output))
+	for i := len(splitPath); i >= 0; i-- {
+
+		tryPath := filepath.Join(splitPath[0:i]...)
+		if dsutil.CheckPath(filepath.Join(tryPath, ".git")) {
+			return tryPath, nil
+		}
+
+	}
+	return "", fmt.Errorf("Could not find .git in any parent directory.")
+
 }
 
 func (c *Context) Clone(targetPath string, url string, must bool) error {
