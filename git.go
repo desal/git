@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -127,7 +128,9 @@ func (c *Context) TopLevel(path string, must bool) (string, error) {
 		return "", err
 	}
 	splitPath := strings.Split(sanePath, "/")
-
+	if runtime.GOOS == "windows" && len(splitPath[0]) == 2 && splitPath[0][1] == ':' {
+		splitPath[0] = splitPath[0] + "\\"
+	}
 	for i := len(splitPath); i >= 0; i-- {
 
 		tryPath := filepath.Join(splitPath[0:i]...)
