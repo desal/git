@@ -4,9 +4,9 @@ package git
 
 import "fmt"
 
-const _Status_name = "UnknownCleanUncommittedDetachedUnpushedNoUpstream"
+const _Status_name = "UnknownCleanUncommittedNoUpstreamNotMaster"
 
-var _Status_index = [...]uint8{0, 7, 12, 23, 31, 39, 49}
+var _Status_index = [...]uint8{0, 7, 12, 23, 33, 42}
 
 func (i Status) String() string {
 	if i < 0 || i >= Status(len(_Status_index)-1) {

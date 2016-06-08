@@ -18,9 +18,10 @@ const (
 	Unknown Status = iota
 	Clean
 	Uncommitted
-	Detached
-	Unpushed
+	//	Detached
+	//	Unpushed
 	NoUpstream
+	NotMaster
 )
 
 var (
@@ -94,18 +95,16 @@ func (c *Context) Status(path string, must bool) (Status, error) {
 		return Uncommitted, nil
 	}
 
-	if _, err := cmdContext.Execf("git symbolic-ref HEAD"); err != nil {
-		return Detached, nil
-	}
-
-	if _, err := cmdContext.Execf(escape("git rev-parse --abrev-ref --symbolic-full-name @{upstream}")); err != nil {
-		return NoUpstream, nil
-	}
-
-	if unpushed, err := mustContext.Execf(escape("git rev-list HEAD@{upstream}..HEAD")); err != nil {
+	if output, err := cmdContext.Execf("git branch --remote --contains"); err != nil {
 		return Unknown, err
-	} else if len(unpushed) != 0 {
-		return Unpushed, nil
+	} else {
+		remoteBranches := dsutil.SplitLines(output, true)
+		if len(remoteBranches) == 0 {
+			return NoUpstream, nil
+		}
+		if !strings.Contains(output, "origin/master") {
+			return NotMaster, nil
+		}
 	}
 	return Clean, nil
 }
@@ -123,16 +122,21 @@ func (c *Context) TopLevel(path string, must bool) (string, error) {
 	//Unfortunately you can't use "git rev-parse --show-toplevel", as it will unsymlinkify things.
 	cmdContext := c.cmdContext(path, must)
 
-	sanePath, err := dsutil.SanitisePath(cmdContext, dsutil.FirstLine(path))
+	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
 	}
+
+	sanePath, err := dsutil.SanitisePath(cmdContext, absPath)
+	if err != nil {
+		return "", err
+	}
+
 	splitPath := strings.Split(sanePath, "/")
 	if runtime.GOOS == "windows" && len(splitPath[0]) == 2 && splitPath[0][1] == ':' {
 		splitPath[0] = splitPath[0] + "\\"
 	}
 	for i := len(splitPath); i >= 0; i-- {
-
 		tryPath := filepath.Join(splitPath[0:i]...)
 		if dsutil.CheckPath(filepath.Join(tryPath, ".git")) {
 			return tryPath, nil
@@ -190,5 +194,12 @@ func (c *Context) RemoteOriginUrl(targetPath string, must bool) (string, error) 
 	cmdContext := c.cmdContext(targetPath, must)
 
 	output, err := cmdContext.Execf("git config --get remote.origin.url")
+	return dsutil.FirstLine(output), err
+}
+
+func (c *Context) AbbrevRef(targetPath string, must bool) (string, error) {
+	cmdContext := c.cmdContext(targetPath, must)
+
+	output, err := cmdContext.Execf("git rev-parse --abbrev-ref HEAD")
 	return dsutil.FirstLine(output), err
 }
