@@ -20,6 +20,12 @@ func main() {
 	sha, err := ctx.SHA(".", false)
 	fmt.Println("SHA:", sha, err)
 
+	tags, err := ctx.Tags(".", false)
+	fmt.Println("Tags:", tags, err)
+
+	mostRecentTag, err := ctx.MostRecentTag(".", false)
+	fmt.Println("MostRecentTag:", mostRecentTag, err)
+
 	status, err := ctx.Status(".", false)
 	fmt.Println("Status:", status, err)
 

@@ -115,7 +115,10 @@ func (c *Context) cmdContext(path string, must bool) *cmd.Context {
 	} else {
 		return cmd.NewContext(path, c.output, cmd.Warn)
 	}
+}
 
+func (c *Context) silentContext(path string) *cmd.Context {
+	return cmd.NewContext(path, c.output)
 }
 
 func (c *Context) TopLevel(path string, must bool) (string, error) {
@@ -187,6 +190,26 @@ func (c *Context) SHA(targetPath string, must bool) (string, error) {
 	cmdContext := c.cmdContext(targetPath, must)
 
 	output, err := cmdContext.Execf("git rev-parse HEAD")
+	return dsutil.FirstLine(output), err
+}
+
+func (c *Context) Tags(targetPath string, must bool) ([]string, error) {
+	cmdContext := c.cmdContext(targetPath, must)
+
+	output, err := cmdContext.Execf("git tag --points-at HEAD")
+	return dsutil.SplitLines(output, true), err
+}
+
+func (c *Context) MostRecentTag(targetPath string, must bool) (string, error) {
+	cmdContext := c.silentContext(targetPath)
+
+	output, err := cmdContext.Execf("git describe --abbrev=0 --tags")
+	if err != nil && strings.Contains(err.Error(), "No names found, cannot describe anything") {
+		return "", nil
+	} else if err != nil && must {
+		panic(err)
+	}
+
 	return dsutil.FirstLine(output), err
 }
 
