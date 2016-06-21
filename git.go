@@ -142,7 +142,7 @@ func (c *Context) TopLevel(path string, must bool) (string, error) {
 	for i := len(splitPath); i >= 0; i-- {
 		tryPath := filepath.Join(splitPath[0:i]...)
 		if dsutil.CheckPath(filepath.Join(tryPath, ".git")) {
-			return tryPath, nil
+			return dsutil.SanitisePath(cmdContext, tryPath)
 		}
 
 	}
