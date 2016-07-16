@@ -3,33 +3,32 @@ package main
 import (
 	"fmt"
 
-	"github.com/desal/cmd"
 	"github.com/desal/git"
 	"github.com/desal/richtext"
 )
 
 func main() {
-	output := cmd.NewStdOutput(false, richtext.Ansi())
-	ctx := git.New(output)
+	format := richtext.New()
+	ctx := git.New(format)
 
 	fmt.Println("IsGit:", ctx.IsGit("."))
 
-	url, err := ctx.RemoteOriginUrl(".", false)
+	url, err := ctx.RemoteOriginUrl(".")
 	fmt.Println("RemoteOriginUrl:", url, err)
 
-	sha, err := ctx.SHA(".", false)
+	sha, err := ctx.SHA(".")
 	fmt.Println("SHA:", sha, err)
 
-	tags, err := ctx.Tags(".", false)
+	tags, err := ctx.Tags(".")
 	fmt.Println("Tags:", tags, err)
 
-	mostRecentTag, err := ctx.MostRecentTag(".", false)
+	mostRecentTag, err := ctx.MostRecentTag(".")
 	fmt.Println("MostRecentTag:", mostRecentTag, err)
 
-	status, err := ctx.Status(".", false)
+	status, err := ctx.Status(".")
 	fmt.Println("Status:", status, err)
 
-	topLevel, err := ctx.TopLevel(".", false)
+	topLevel, err := ctx.TopLevel(".")
 	fmt.Println("TopLevel:", topLevel, err)
 
 }
