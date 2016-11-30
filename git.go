@@ -41,6 +41,7 @@ const (
 	MustPanic
 	Warn
 	Verbose
+	LocalOnly // i.e. not being in remote is not considered an error
 )
 
 var (
@@ -103,6 +104,10 @@ func (c *Context) Status(path string) (Status, error) {
 		return Unknown, err
 	} else if len(unchecked) != 0 {
 		return Uncommitted, nil
+	}
+
+	if c.flags.Checked(LocalOnly) {
+		return Clean, nil
 	}
 
 	if output, _, err := ctx.Execf("git branch --remote --contains"); err != nil {
