@@ -2,33 +2,60 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/desal/git"
 	"github.com/desal/richtext"
 )
 
+func timeIt(fn func()) {
+	tBefore := time.Now()
+	fn()
+	tAfter := time.Now()
+	fmt.Println(" in ", tAfter.Sub(tBefore))
+}
+
 func main() {
 	format := richtext.New()
 	ctx := git.New(format)
 
-	fmt.Println("IsGit:", ctx.IsGit("."))
+	timeIt(func() {
+		fmt.Print("IsGit: ", ctx.IsGit("."))
+	})
 
-	url, err := ctx.RemoteOriginUrl(".")
-	fmt.Println("RemoteOriginUrl:", url, err)
+	timeIt(func() {
+		url, err := ctx.RemoteOriginUrl(".")
+		fmt.Print("RemoteOriginUrl: ", url, err)
+	})
 
-	sha, err := ctx.SHA(".")
-	fmt.Println("SHA:", sha, err)
+	timeIt(func() {
+		sha, err := ctx.SHA(".")
+		fmt.Print("SHA: ", sha, err)
+	})
 
-	tags, err := ctx.Tags(".")
-	fmt.Println("Tags:", tags, err)
+	timeIt(func() {
+		ct, err := ctx.CommitTime(".")
+		fmt.Print("CommitTime: ", ct, err)
+	})
 
-	mostRecentTag, err := ctx.MostRecentTag(".")
-	fmt.Println("MostRecentTag:", mostRecentTag, err)
+	timeIt(func() {
+		tags, err := ctx.Tags(".")
+		fmt.Print("Tags: ", tags, err)
+	})
 
-	status, err := ctx.Status(".")
-	fmt.Println("Status:", status, err)
+	timeIt(func() {
+		mostRecentTag, err := ctx.MostRecentTag(".")
+		fmt.Print("MostRecentTag: ", mostRecentTag, err)
+	})
 
-	topLevel, err := ctx.TopLevel(".")
-	fmt.Println("TopLevel:", topLevel, err)
+	timeIt(func() {
+		status, err := ctx.Status(".")
+		fmt.Print("Status: ", status, err)
+	})
+
+	timeIt(func() {
+		topLevel, err := ctx.TopLevel(".")
+		fmt.Print("TopLevel: ", topLevel, err)
+	})
 
 }

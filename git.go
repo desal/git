@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/desal/cmd"
 	"github.com/desal/dsutil"
@@ -185,6 +187,18 @@ func (c *Context) SHA(targetPath string) (string, error) {
 	return dsutil.FirstLine(output), err
 }
 
+func (c *Context) CommitTime(targetPath string) (time.Time, error) {
+	cmdContext := c.cmdContext(targetPath)
+
+	output, _, err := cmdContext.Execf("%s", "git show -s --format=%ct")
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	unix, err := strconv.ParseInt(output, 10, 64)
+	return time.Unix(unix, 0), err
+}
+
 func (c *Context) Tags(targetPath string) ([]string, error) {
 	cmdContext := c.cmdContext(targetPath)
 
@@ -218,5 +232,12 @@ func (c *Context) AbbrevRef(targetPath string) (string, error) {
 	cmdContext := c.cmdContext(targetPath)
 
 	output, _, err := cmdContext.Execf("git rev-parse --abbrev-ref HEAD")
+	return dsutil.FirstLine(output), err
+}
+
+func (c *Context) Branch(targetPath string) (string, error) {
+	cmdContext := c.cmdContext(targetPath)
+
+	output, _, err := cmdContext.Execf("git name-rev --name-only HEAD")
 	return dsutil.FirstLine(output), err
 }
